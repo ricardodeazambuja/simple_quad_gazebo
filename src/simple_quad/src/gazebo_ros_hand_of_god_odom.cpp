@@ -172,6 +172,8 @@ public:
 
   /// Applied force and torque gains
   double kl_, ka_, cl_, ca_;
+
+  bool follow_recv_pose_{false};
 };
 
 GazeboRosHandOfGodOdom::GazeboRosHandOfGodOdom()
@@ -227,6 +229,8 @@ void GazeboRosHandOfGodOdom::Load(gazebo::physics::ModelPtr _model, sdf::Element
     impl_->ros_node_.reset();
     return;
   }
+
+  impl_->link_->SetGravityMode(false);
 
   impl_->cl_ = 2.0 * sqrt(impl_->kl_ * impl_->link_->GetInertial()->Mass());
   impl_->ca_ = 2.0 * sqrt(impl_->ka_ * impl_->link_->GetInertial()->IXX());
@@ -293,15 +297,17 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
 #ifdef IGN_PROFILER_ENABLE
   IGN_PROFILE_BEGIN("Get pose command");
 #endif
-
+  
   // Time delta
   double dt = (_info.simTime - last_main_update_time_).Double();
   last_main_update_time_ = _info.simTime;
 
   ignition::math::Pose3d hog_desired;
+  ignition::math::Pose3d curr_pose = link_->DirtyPose();
 
   {
     std::lock_guard<std::mutex> pose_lock(lock_);
+
     // Modify recv_pose_ according to the received velocities.
     tf2::Quaternion q_rot, q_new; // https://docs.ros.org/en/galactic/Tutorials/Tf2/Quaternion-Fundamentals.html
     tf2::fromMsg(recv_pose_.orientation, q_new);
@@ -309,10 +315,22 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
 
     // Rotate the target_linear_ vector to align it to recv_pose_.orientation
     // because the commands are in the drone frame
-    auto target_linear_rot = m*(target_linear_*dt);
+    auto target_linear_rot = m*(target_linear_*dt*kl_);
+    if (target_linear_.length()>0 && !follow_recv_pose_){
+      recv_pose_.position.x = curr_pose.Pos().X();
+      recv_pose_.position.y = curr_pose.Pos().Y();
+      recv_pose_.position.z = curr_pose.Pos().Z();
+    }
     recv_pose_.position.x += target_linear_rot.getX();
     recv_pose_.position.y += target_linear_rot.getY();
     recv_pose_.position.z += target_linear_rot.getZ();
+
+    if (abs(target_rot_)>0 && !follow_recv_pose_){
+      recv_pose_.orientation.x = curr_pose.Rot().X();
+      recv_pose_.orientation.y = curr_pose.Rot().Y();
+      recv_pose_.orientation.z = curr_pose.Rot().Z();
+      recv_pose_.orientation.w = curr_pose.Rot().W();
+    }
 
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
@@ -323,7 +341,7 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
     q_new.setRPY(0.0, 0.0, yaw); // The drone can only hover
     q_new.normalize();
     tf2::convert(q_new, recv_pose_.orientation); // recv_pose_.orientation = tf2::toMsg(q_new);
-
+  
     hog_desired = gazebo_ros::Convert<ignition::math::Pose3d>(recv_pose_);
   }
 
@@ -333,14 +351,13 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
   ignition::math::Vector3d world_linear_vel = link_->WorldLinearVel();
 
   // Relative transform from actual to desired pose
-  ignition::math::Pose3d world_pose = link_->DirtyPose();
   ignition::math::Vector3d relative_angular_vel = link_->RelativeAngularVel();
 
-  ignition::math::Vector3d err_pos = hog_desired.Pos() - world_pose.Pos();
+  ignition::math::Vector3d err_pos = hog_desired.Pos() - curr_pose.Pos();
   ignition::math::Vector3d force = (kl_ * err_pos - cl_ * world_linear_vel);
 
   // Get exponential coordinates for rotation
-  ignition::math::Quaterniond err_rot = (ignition::math::Matrix4d(world_pose.Rot()).Inverse() *
+  ignition::math::Quaterniond err_rot = (ignition::math::Matrix4d(curr_pose.Rot()).Inverse() *
     ignition::math::Matrix4d(hog_desired.Rot())).Rotation();
 
   ignition::math::Vector3d err_vec(err_rot.Log().X(), err_rot.Log().Y(), err_rot.Log().Z());
@@ -348,7 +365,6 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
 
   link_->AddForce(force);
   link_->AddRelativeTorque(torque);
-
 
   PublishFootprintTf(_info.simTime);
   
@@ -395,6 +411,7 @@ void GazeboRosHandOfGodOdomPrivate::OnCmdPos(const geometry_msgs::msg::Pose::Sha
   std::lock_guard<std::mutex> pose_lock(lock_);
   recv_pose_.position = _msg->position;
   recv_pose_.orientation = _msg->orientation;
+  follow_recv_pose_ = true;
 }
 
 void GazeboRosHandOfGodOdomPrivate::OnCmdVel(const geometry_msgs::msg::Twist::SharedPtr _msg)
@@ -404,6 +421,7 @@ void GazeboRosHandOfGodOdomPrivate::OnCmdVel(const geometry_msgs::msg::Twist::Sh
   target_linear_.setY(_msg->linear.y);
   target_linear_.setZ(_msg->linear.z);
   target_rot_ = _msg->angular.z;
+  follow_recv_pose_ = false;
 }
 
 void GazeboRosHandOfGodOdomPrivate::UpdateOdometryWorld()

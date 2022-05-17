@@ -367,7 +367,7 @@
     <kl>100</kl>
 
     <!-- Odometry output -->
-    <update_rate>100</update_rate>
+    <update_rate>50</update_rate>
     <publish_odom>true</publish_odom>
     <publish_odom_tf>true</publish_odom_tf>
 

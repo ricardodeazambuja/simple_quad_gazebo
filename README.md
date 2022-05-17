@@ -37,3 +37,8 @@ angular:
   y: 0.0
   z: 0.5" -1
 ```
+
+Control it using the keyboard:
+```
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r teleop_twist_keyboard:cmd_vel:=/simple_quad/cmd_vel
+```
