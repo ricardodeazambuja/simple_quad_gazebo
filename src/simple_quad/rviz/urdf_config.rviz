@@ -8,6 +8,7 @@ Panels:
         - /Status1
         - /TF1
         - /LaserScan1
+        - /LaserScan1/Topic1
         - /PointCloud21
         - /PointCloud21/Topic1
         - /Image1
@@ -219,8 +220,8 @@ Visualization Manager:
         Durability Policy: Volatile
         Filter size: 10
         History Policy: Keep Last
-        Reliability Policy: Reliable
-        Value: /scan
+        Reliability Policy: Best Effort
+        Value: /simple_quad/scan
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
@@ -309,7 +310,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 9.653614044189453
+      Distance: 7.4757585525512695
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -324,10 +325,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7903985381126404
+      Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.6654069423675537
+      Yaw: 2.6354074478149414
     Saved: ~
 Window Geometry:
   Displays:

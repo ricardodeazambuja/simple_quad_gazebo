@@ -1,4 +1,5 @@
 # simple_quad_gazebo
+Very simple quadcopter for Gazebo using ROS2 Galactic 
 
 ```
 colcon build --symlink-install
