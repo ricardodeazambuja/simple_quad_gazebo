@@ -72,6 +72,7 @@ class GazeboRosHandOfGodOdomPrivate;
       <kl>200</kl>
 
       <!-- Odometry output -->
+      <update_rate>50</update_rate>
       <publish_odom>true</publish_odom>
       <publish_odom_tf>true</publish_odom_tf>
 
@@ -79,13 +80,18 @@ class GazeboRosHandOfGodOdomPrivate;
       <odometry_frame>odom</odometry_frame>
       <robot_base_frame>base_link</robot_base_frame>
 
+      <bias_x>0.00001</bias_x>
+      <bias_y>0.00001</bias_y>
+      <bias_z>0.00001</bias_z>
       <covariance_x>0.00001</covariance_x>
       <covariance_y>0.00001</covariance_y>
       <covariance_z>0.00001</covariance_z>
+      <bias_roll>0.001</bias_roll>
+      <bias_pitch>0.001</bias_pitch>
+      <bias_yaw>0.001</bias_yaw>
       <covariance_roll>0.001</covariance_roll>
       <covariance_pitch>0.001</covariance_pitch>
       <covariance_yaw>0.001</covariance_yaw>
-
 
     </plugin>
   \endcode

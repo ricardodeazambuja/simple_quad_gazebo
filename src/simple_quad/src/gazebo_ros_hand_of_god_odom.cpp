@@ -164,6 +164,9 @@ public:
   /// Covariance in odometry
   double covariance_[6];
 
+  /// Bias in odometry
+  double bias_[6];
+
   /// Update period in seconds.
   double update_period_;
 
@@ -286,6 +289,13 @@ void GazeboRosHandOfGodOdom::Load(gazebo::physics::ModelPtr _model, sdf::Element
   impl_->covariance_[3] = _sdf->Get<double>("covariance_roll",  0.001).first;
   impl_->covariance_[4] = _sdf->Get<double>("covariance_pitch", 0.001).first;
   impl_->covariance_[5] = _sdf->Get<double>("covariance_yaw",   0.001).first;
+
+  impl_->bias_[0] = _sdf->Get<double>("bias_x",     0.00001).first;
+  impl_->bias_[1] = _sdf->Get<double>("bias_y",     0.00001).first;
+  impl_->bias_[2] = _sdf->Get<double>("bias_z",     0.00001).first;
+  impl_->bias_[3] = _sdf->Get<double>("bias_roll",  0.001).first;
+  impl_->bias_[4] = _sdf->Get<double>("bias_pitch", 0.001).first;
+  impl_->bias_[5] = _sdf->Get<double>("bias_yaw",   0.001).first;
 
   // Listen to the update event (broadcast every simulation iteration)
   impl_->update_connection_ = gazebo::event::Events::ConnectWorldUpdateBegin(
@@ -429,6 +439,19 @@ void GazeboRosHandOfGodOdomPrivate::UpdateOdometryWorld()
   auto pose = model_->WorldPose();
   odom_.pose.pose.position = gazebo_ros::Convert<geometry_msgs::msg::Point>(pose.Pos());
   odom_.pose.pose.orientation = gazebo_ros::Convert<geometry_msgs::msg::Quaternion>(pose.Rot());
+
+  odom_.pose.pose.position.x += ignition::math::Rand::DblNormal(bias_[0], covariance_[0]);
+  odom_.pose.pose.position.y += ignition::math::Rand::DblNormal(bias_[1], covariance_[1]);
+  odom_.pose.pose.position.z += ignition::math::Rand::DblNormal(bias_[2], covariance_[2]);
+
+  ignition::math::Quaternion q_noise(ignition::math::Rand::DblNormal(bias_[3], covariance_[3]), 
+                                     ignition::math::Rand::DblNormal(bias_[4], covariance_[4]),
+                                     ignition::math::Rand::DblNormal(bias_[5], covariance_[5]));
+  
+  odom_.pose.pose.orientation.x += q_noise.X();
+  odom_.pose.pose.orientation.y += q_noise.Y();
+  odom_.pose.pose.orientation.z += q_noise.Z();
+  odom_.pose.pose.orientation.w += q_noise.W();
 
   // Get velocity in odom frame
   auto linear = model_->RelativeLinearVel();
