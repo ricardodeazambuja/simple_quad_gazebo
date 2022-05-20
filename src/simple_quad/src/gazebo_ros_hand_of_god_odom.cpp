@@ -162,10 +162,10 @@ public:
   bool publish_odom_tf_;
 
   /// Covariance in odometry
-  double covariance_[6];
+  double covariance_[12];
 
   /// Bias in odometry
-  double bias_[6];
+  double bias_[12];
 
   /// Update period in seconds.
   double update_period_;
@@ -283,19 +283,31 @@ void GazeboRosHandOfGodOdom::Load(gazebo::physics::ModelPtr _model, sdf::Element
       impl_->robot_base_frame_.c_str());
   }
 
-  impl_->covariance_[0] = _sdf->Get<double>("covariance_x",     0.00001).first;
-  impl_->covariance_[1] = _sdf->Get<double>("covariance_y",     0.00001).first;
-  impl_->covariance_[2] = _sdf->Get<double>("covariance_z",     0.00001).first;
-  impl_->covariance_[3] = _sdf->Get<double>("covariance_roll",  0.001).first;
-  impl_->covariance_[4] = _sdf->Get<double>("covariance_pitch", 0.001).first;
-  impl_->covariance_[5] = _sdf->Get<double>("covariance_yaw",   0.001).first;
+  impl_->covariance_[0] =  _sdf->Get<double>("covariance_x",     0.00001).first;
+  impl_->covariance_[1] =  _sdf->Get<double>("covariance_y",     0.00001).first;
+  impl_->covariance_[2] =  _sdf->Get<double>("covariance_z",     0.00001).first;
+  impl_->covariance_[3] =  _sdf->Get<double>("covariance_roll",  0.001).first;
+  impl_->covariance_[4] =  _sdf->Get<double>("covariance_pitch", 0.001).first;
+  impl_->covariance_[5] =  _sdf->Get<double>("covariance_yaw",   0.001).first;
+  impl_->covariance_[6] =  _sdf->Get<double>("covariance_vx",     0.00001).first;
+  impl_->covariance_[7] =  _sdf->Get<double>("covariance_vy",     0.00001).first;
+  impl_->covariance_[8] =  _sdf->Get<double>("covariance_vz",     0.00001).first;
+  impl_->covariance_[9] =  _sdf->Get<double>("covariance_vroll",  0.001).first;
+  impl_->covariance_[10] = _sdf->Get<double>("covariance_vpitch", 0.001).first;
+  impl_->covariance_[11] = _sdf->Get<double>("covariance_vyaw",   0.001).first;
 
-  impl_->bias_[0] = _sdf->Get<double>("bias_x",     0.00001).first;
-  impl_->bias_[1] = _sdf->Get<double>("bias_y",     0.00001).first;
-  impl_->bias_[2] = _sdf->Get<double>("bias_z",     0.00001).first;
-  impl_->bias_[3] = _sdf->Get<double>("bias_roll",  0.001).first;
-  impl_->bias_[4] = _sdf->Get<double>("bias_pitch", 0.001).first;
-  impl_->bias_[5] = _sdf->Get<double>("bias_yaw",   0.001).first;
+  impl_->bias_[0] =  _sdf->Get<double>("bias_x",     0.00001).first;
+  impl_->bias_[1] =  _sdf->Get<double>("bias_y",     0.00001).first;
+  impl_->bias_[2] =  _sdf->Get<double>("bias_z",     0.00001).first;
+  impl_->bias_[3] =  _sdf->Get<double>("bias_roll",  0.001).first;
+  impl_->bias_[4] =  _sdf->Get<double>("bias_pitch", 0.001).first;
+  impl_->bias_[5] =  _sdf->Get<double>("bias_yaw",   0.001).first;
+  impl_->bias_[6] =  _sdf->Get<double>("bias_vx",     0.00001).first;
+  impl_->bias_[7] =  _sdf->Get<double>("bias_vy",     0.00001).first;
+  impl_->bias_[8] =  _sdf->Get<double>("bias_vz",     0.00001).first;
+  impl_->bias_[9] =  _sdf->Get<double>("bias_vroll",  0.001).first;
+  impl_->bias_[10] = _sdf->Get<double>("bias_vpitch", 0.001).first;
+  impl_->bias_[11] = _sdf->Get<double>("bias_vyaw",   0.001).first;
 
   // Listen to the update event (broadcast every simulation iteration)
   impl_->update_connection_ = gazebo::event::Events::ConnectWorldUpdateBegin(
@@ -325,15 +337,14 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
 
     // Rotate the target_linear_ vector to align it to recv_pose_.orientation
     // because the commands are in the drone frame
-    auto target_linear_rot = m*(target_linear_*dt*kl_);
+    auto target_linear_cmd_rotated = m*(target_linear_*dt*kl_);
+    auto target_rot_cmd = target_rot_*dt;
+
     if (target_linear_.length()>0 && !follow_recv_pose_){
       recv_pose_.position.x = curr_pose.Pos().X();
       recv_pose_.position.y = curr_pose.Pos().Y();
       recv_pose_.position.z = curr_pose.Pos().Z();
     }
-    recv_pose_.position.x += target_linear_rot.getX();
-    recv_pose_.position.y += target_linear_rot.getY();
-    recv_pose_.position.z += target_linear_rot.getZ();
 
     if (abs(target_rot_)>0 && !follow_recv_pose_){
       recv_pose_.orientation.x = curr_pose.Rot().X();
@@ -342,9 +353,13 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
       recv_pose_.orientation.w = curr_pose.Rot().W();
     }
 
+    recv_pose_.position.x += target_linear_cmd_rotated.getX();
+    recv_pose_.position.y += target_linear_cmd_rotated.getY();
+    recv_pose_.position.z += target_linear_cmd_rotated.getZ();
+
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
-    q_rot.setRPY(0.0, 0.0, target_rot_*dt);
+    q_rot.setRPY(0.0, 0.0, target_rot_cmd);
     q_new = q_rot * q_new;
     m.setRotation(q_new);
     m.getRPY(roll, pitch, yaw);
@@ -456,9 +471,16 @@ void GazeboRosHandOfGodOdomPrivate::UpdateOdometryWorld()
   // Get velocity in odom frame
   auto linear = model_->RelativeLinearVel();
   odom_.twist.twist.linear = gazebo_ros::Convert<geometry_msgs::msg::Vector3>(linear);
+  odom_.twist.twist.linear.x += ignition::math::Rand::DblNormal(bias_[6], covariance_[6]);
+  odom_.twist.twist.linear.y += ignition::math::Rand::DblNormal(bias_[7], covariance_[7]);
+  odom_.twist.twist.linear.z += ignition::math::Rand::DblNormal(bias_[8], covariance_[8]);
+
   
   auto angular = model_->RelativeAngularVel();
   odom_.twist.twist.angular = gazebo_ros::Convert<geometry_msgs::msg::Vector3>(angular);
+  odom_.twist.twist.angular.x += ignition::math::Rand::DblNormal(bias_[9], covariance_[9]);
+  odom_.twist.twist.angular.y += ignition::math::Rand::DblNormal(bias_[10], covariance_[10]);
+  odom_.twist.twist.angular.z += ignition::math::Rand::DblNormal(bias_[11], covariance_[11]);
 }
 
 void GazeboRosHandOfGodOdomPrivate::PublishOdometryTf(const gazebo::common::Time & _current_time)
@@ -494,12 +516,12 @@ void GazeboRosHandOfGodOdomPrivate::PublishOdometryMsg(const gazebo::common::Tim
   odom_.pose.covariance[28] = covariance_[4];
   odom_.pose.covariance[35] = covariance_[5];
 
-  odom_.twist.covariance[0] =  covariance_[0];
-  odom_.twist.covariance[7] =  covariance_[1];
-  odom_.twist.covariance[14] = covariance_[2];
-  odom_.twist.covariance[21] = covariance_[3];
-  odom_.twist.covariance[28] = covariance_[4];
-  odom_.twist.covariance[35] = covariance_[5];
+  odom_.twist.covariance[0] =  covariance_[6];
+  odom_.twist.covariance[7] =  covariance_[7];
+  odom_.twist.covariance[14] = covariance_[8];
+  odom_.twist.covariance[21] = covariance_[9];
+  odom_.twist.covariance[28] = covariance_[10];
+  odom_.twist.covariance[35] = covariance_[11];
 
   // Set header
   odom_.header.frame_id = odometry_frame_;

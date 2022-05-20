@@ -21,7 +21,7 @@ def generate_launch_description():
     spawn_entity = launch_ros.actions.Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
-        arguments=['-entity', 'simple_quad', '-topic', 'robot_description'],
+        arguments=['-entity', 'simple_quad', '-topic', 'robot_description', '-z', '0.05'],
         output='screen'
     )
 
@@ -29,6 +29,7 @@ def generate_launch_description():
         package='robot_localization',
         executable='ekf_node',
         name='ekf_filter_node',
+        remappings=[('/cmd_vel', '/simple_quad/cmd_vel_rl')],
         output='screen',
         parameters=[os.path.join(pkg_share, 'config/ekf.yaml'), {'use_sim_time': LaunchConfiguration('use_sim_time')}]
     )

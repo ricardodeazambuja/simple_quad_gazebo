@@ -51,6 +51,8 @@
           <cylinder radius="${base_radius}" length="${base_height}"/>
         </geometry>
       </collision>
+
+      <xacro:cylinder_inertia m="0.1" r="${base_radius}" h="${base_height}"/>
   </link>
 
   <!-- Arms -->
@@ -159,6 +161,10 @@
           <stddev>2e-4</stddev>
           <bias_mean>0.0000075</bias_mean>
           <bias_stddev>0.0000008</bias_stddev>
+          <!-- <mean>0.0</mean>
+          <stddev>0.0</stddev>
+          <bias_mean>0.0</bias_mean>
+          <bias_stddev>0.0</bias_stddev> -->
         </noise>
       </x>
       <y>
@@ -167,6 +173,10 @@
           <stddev>2e-4</stddev>
           <bias_mean>0.0000075</bias_mean>
           <bias_stddev>0.0000008</bias_stddev>
+          <!-- <mean>0.0</mean>
+          <stddev>0.0</stddev>
+          <bias_mean>0.0</bias_mean>
+          <bias_stddev>0.0</bias_stddev> -->
         </noise>
       </y>
       <z>
@@ -175,6 +185,10 @@
           <stddev>2e-4</stddev>
           <bias_mean>0.0000075</bias_mean>
           <bias_stddev>0.0000008</bias_stddev>
+          <!-- <mean>0.0</mean>
+          <stddev>0.0</stddev>
+          <bias_mean>0.0</bias_mean>
+          <bias_stddev>0.0</bias_stddev> -->
         </noise>
       </z>
     </angular_velocity>
@@ -185,6 +199,10 @@
           <stddev>1.7e-2</stddev>
           <bias_mean>0.1</bias_mean>
           <bias_stddev>0.001</bias_stddev>
+          <!-- <mean>0.0</mean>
+          <stddev>0.0</stddev>
+          <bias_mean>0.0</bias_mean>
+          <bias_stddev>0.0</bias_stddev> -->
         </noise>
       </x>
       <y>
@@ -193,6 +211,10 @@
           <stddev>1.7e-2</stddev>
           <bias_mean>0.1</bias_mean>
           <bias_stddev>0.001</bias_stddev>
+          <!-- <mean>0.0</mean>
+          <stddev>0.0</stddev>
+          <bias_mean>0.0</bias_mean>
+          <bias_stddev>0.0</bias_stddev> -->
         </noise>
       </y>
       <z>
@@ -201,6 +223,10 @@
           <stddev>1.7e-2</stddev>
           <bias_mean>0.1</bias_mean>
           <bias_stddev>0.001</bias_stddev>
+          <!-- <mean>0.0</mean>
+          <stddev>0.0</stddev>
+          <bias_mean>0.0</bias_mean>
+          <bias_stddev>0.0</bias_stddev> -->
         </noise>
       </z>
     </linear_acceleration>
@@ -252,7 +278,7 @@
       </scan>
       <range>
         <min>0.120000</min>
-        <max>3.5</max>
+        <max>50</max>
         <resolution>0.015000</resolution>
       </range>
       <noise>
@@ -381,12 +407,24 @@
     <covariance_x>0.01</covariance_x>
     <covariance_y>0.01</covariance_y>
     <covariance_z>0.01</covariance_z>
+    <bias_vx>0.00001</bias_vx>
+    <bias_vy>0.00001</bias_vy>
+    <bias_vz>0.00001</bias_vz>
+    <covariance_vx>0.01</covariance_vx>
+    <covariance_vy>0.01</covariance_vy>
+    <covariance_vz>0.01</covariance_vz>
     <bias_roll>0.001</bias_roll>
     <bias_pitch>0.001</bias_pitch>
     <bias_yaw>0.001</bias_yaw>
     <covariance_roll>0.01</covariance_roll>
     <covariance_pitch>0.01</covariance_pitch>
     <covariance_yaw>0.01</covariance_yaw>
+    <bias_vroll>0.001</bias_vroll>
+    <bias_vpitch>0.001</bias_vpitch>
+    <bias_vyaw>0.001</bias_vyaw>
+    <covariance_vroll>0.01</covariance_vroll>
+    <covariance_vpitch>0.01</covariance_vpitch>
+    <covariance_vyaw>0.01</covariance_vyaw>
 
   </plugin>
 </gazebo>
