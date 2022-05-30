@@ -309,6 +309,21 @@ void GazeboRosHandOfGodOdom::Load(gazebo::physics::ModelPtr _model, sdf::Element
   impl_->bias_[10] = _sdf->Get<double>("bias_vpitch", 0.001).first;
   impl_->bias_[11] = _sdf->Get<double>("bias_vyaw",   0.001).first;
 
+  // Set covariance
+  impl_->odom_.pose.covariance[0] =  impl_->covariance_[0];
+  impl_->odom_.pose.covariance[7] =  impl_->covariance_[1];
+  impl_->odom_.pose.covariance[14] = impl_->covariance_[2];
+  impl_->odom_.pose.covariance[21] = impl_->covariance_[3];
+  impl_->odom_.pose.covariance[28] = impl_->covariance_[4];
+  impl_->odom_.pose.covariance[35] = impl_->covariance_[5];
+
+  impl_->odom_.twist.covariance[0] =  impl_->covariance_[6];
+  impl_->odom_.twist.covariance[7] =  impl_->covariance_[7];
+  impl_->odom_.twist.covariance[14] = impl_->covariance_[8];
+  impl_->odom_.twist.covariance[21] = impl_->covariance_[9];
+  impl_->odom_.twist.covariance[28] = impl_->covariance_[10];
+  impl_->odom_.twist.covariance[35] = impl_->covariance_[11];
+  
   // Listen to the update event (broadcast every simulation iteration)
   impl_->update_connection_ = gazebo::event::Events::ConnectWorldUpdateBegin(
     std::bind(&GazeboRosHandOfGodOdomPrivate::OnUpdate, impl_.get(), std::placeholders::_1));
@@ -508,21 +523,6 @@ void GazeboRosHandOfGodOdomPrivate::PublishFootprintTf(const gazebo::common::Tim
 
 void GazeboRosHandOfGodOdomPrivate::PublishOdometryMsg(const gazebo::common::Time & _current_time)
 {
-  // Set covariance
-  odom_.pose.covariance[0] =  covariance_[0];
-  odom_.pose.covariance[7] =  covariance_[1];
-  odom_.pose.covariance[14] = covariance_[2];
-  odom_.pose.covariance[21] = covariance_[3];
-  odom_.pose.covariance[28] = covariance_[4];
-  odom_.pose.covariance[35] = covariance_[5];
-
-  odom_.twist.covariance[0] =  covariance_[6];
-  odom_.twist.covariance[7] =  covariance_[7];
-  odom_.twist.covariance[14] = covariance_[8];
-  odom_.twist.covariance[21] = covariance_[9];
-  odom_.twist.covariance[28] = covariance_[10];
-  odom_.twist.covariance[35] = covariance_[11];
-
   // Set header
   odom_.header.frame_id = odometry_frame_;
   odom_.child_frame_id = robot_base_frame_;
