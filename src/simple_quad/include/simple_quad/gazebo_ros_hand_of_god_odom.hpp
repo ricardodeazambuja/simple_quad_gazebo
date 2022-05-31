@@ -57,9 +57,6 @@ class GazeboRosHandOfGodOdomPrivate;
 
       </ros>
 
-      <!-- Update rate in Hz -->
-      <update_rate>50</update_rate>
-
       <!-- This is required -->
       <link_name>link</link_name>
 
@@ -70,6 +67,9 @@ class GazeboRosHandOfGodOdomPrivate;
       <!-- Set force and torque gains -->
       <ka>200</ka>
       <kl>200</kl>
+
+      <!-- Max acceleration -->
+      <max_acc>10</max_acc>
 
       <!-- Odometry output -->
       <update_rate>50</update_rate>
