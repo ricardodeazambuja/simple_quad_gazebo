@@ -140,6 +140,7 @@ public:
   /// Linear velocity in X received on command (m/s).
   tf2::Vector3 recv_linear_vel_{0.0,0.0,0.0};
   tf2::Vector3 target_linear_vel_{0.0,0.0,0.0};
+  tf2::Vector3 target_linear_vel_cmd_rotated_prev_{0.0,0.0,0.0};
 
 
   /// Angular velocity in Z received on command (rad/s).
@@ -352,6 +353,8 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
   ignition::math::Pose3d hog_desired;
   ignition::math::Pose3d curr_pose = link_->DirtyPose();
 
+  double roll, pitch, yaw;
+
   {
     std::lock_guard<std::mutex> pose_lock(lock_);
 
@@ -359,11 +362,15 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
     tf2::Quaternion q_rot, q_new; // https://docs.ros.org/en/galactic/Tutorials/Tf2/Quaternion-Fundamentals.html
     tf2::fromMsg(recv_pose_.orientation, q_new);
     tf2::Matrix3x3 m(q_new);
+    m.getRPY(roll, pitch, yaw);
+    q_new.setRPY(0.0, 0.0, yaw);
+    m.setRotation(q_new);
 
-    auto target_acc = (recv_linear_vel_-target_linear_vel_)/dt;
+    auto target_acc = (recv_linear_vel_- target_linear_vel_)/dt;
     auto target_acc_length = target_acc.length();
-    if ( target_acc_length > max_acc_) {
-      target_linear_vel_ += (target_acc/target_acc_length)*max_acc_*dt;
+    if (target_acc_length > max_acc_) {
+      target_acc = (target_acc/target_acc_length)*max_acc_;
+      target_linear_vel_ += target_acc*dt;
     } else {
       target_linear_vel_ = recv_linear_vel_;
     }
@@ -371,6 +378,12 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
     // Rotate the target_linear_vel_ vector to align it to recv_pose_.orientation
     // because the commands are in the drone frame
     auto target_linear_vel_cmd_rotated = m*(target_linear_vel_*dt*kl_);
+    tf2::Matrix3x3 m_acc;
+    tf2::Quaternion q_acc;
+    q_acc.setRPY(0.0, 0.0, -yaw);
+    m_acc.setRotation(q_acc);
+    auto curr_acc = m_acc*(target_linear_vel_cmd_rotated-target_linear_vel_cmd_rotated_prev_)/dt;
+    target_linear_vel_cmd_rotated_prev_ = target_linear_vel_cmd_rotated;
     auto target_rot_cmd = target_rot_*dt;
 
     if (target_linear_vel_.length()>0 && !follow_recv_pose_){
@@ -390,13 +403,13 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
     recv_pose_.position.y += target_linear_vel_cmd_rotated.getY();
     recv_pose_.position.z += target_linear_vel_cmd_rotated.getZ();
 
-    double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
     q_rot.setRPY(0.0, 0.0, target_rot_cmd);
     q_new = q_rot * q_new;
     m.setRotation(q_new);
     m.getRPY(roll, pitch, yaw);
-    q_new.setRPY(0.0, 0.0, yaw); // The drone can only hover
+    auto accz = std::clamp(curr_acc.getZ(), 0.0, abs(curr_acc.getZ()));
+    q_new.setRPY(atan2(-curr_acc.getY(),accz+9.8), atan2(curr_acc.getX(),accz+9.8), yaw); // cheap, dirty, trick to make it look more realistic...
     q_new.normalize();
     tf2::convert(q_new, recv_pose_.orientation); // recv_pose_.orientation = tf2::toMsg(q_new);
   
