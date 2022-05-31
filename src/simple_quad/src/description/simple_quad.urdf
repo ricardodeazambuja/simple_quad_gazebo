@@ -392,6 +392,9 @@
     <ka>100</ka>
     <kl>100</kl>
 
+    <!-- Max acceleration -->
+    <max_acc>10</max_acc>
+
     <!-- Odometry output -->
     <update_rate>50</update_rate>
     <publish_odom>true</publish_odom>

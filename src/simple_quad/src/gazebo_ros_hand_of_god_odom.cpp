@@ -138,7 +138,9 @@ public:
   geometry_msgs::msg::Pose recv_pose_;
 
   /// Linear velocity in X received on command (m/s).
-  tf2::Vector3 target_linear_{0.0,0.0,0.0};
+  tf2::Vector3 recv_linear_vel_{0.0,0.0,0.0};
+  tf2::Vector3 target_linear_vel_{0.0,0.0,0.0};
+
 
   /// Angular velocity in Z received on command (rad/s).
   double target_rot_{0.0};
@@ -175,6 +177,10 @@ public:
 
   /// Applied force and torque gains
   double kl_, ka_, cl_, ca_;
+
+  double mass_;
+
+  double max_acc_;
 
   bool follow_recv_pose_{false};
 };
@@ -235,7 +241,8 @@ void GazeboRosHandOfGodOdom::Load(gazebo::physics::ModelPtr _model, sdf::Element
 
   impl_->link_->SetGravityMode(false);
 
-  impl_->cl_ = 2.0 * sqrt(impl_->kl_ * impl_->link_->GetInertial()->Mass());
+  impl_->mass_ = impl_->link_->GetInertial()->Mass();
+  impl_->cl_ = 2.0 * sqrt(impl_->kl_ * impl_->mass_);
   impl_->ca_ = 2.0 * sqrt(impl_->ka_ * impl_->link_->GetInertial()->IXX());
 
   // Subscribe to pose
@@ -323,6 +330,9 @@ void GazeboRosHandOfGodOdom::Load(gazebo::physics::ModelPtr _model, sdf::Element
   impl_->odom_.twist.covariance[21] = impl_->covariance_[9];
   impl_->odom_.twist.covariance[28] = impl_->covariance_[10];
   impl_->odom_.twist.covariance[35] = impl_->covariance_[11];
+
+
+  impl_->max_acc_ = _sdf->Get<double>("max_acc", 10).first;
   
   // Listen to the update event (broadcast every simulation iteration)
   impl_->update_connection_ = gazebo::event::Events::ConnectWorldUpdateBegin(
@@ -350,12 +360,20 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
     tf2::fromMsg(recv_pose_.orientation, q_new);
     tf2::Matrix3x3 m(q_new);
 
-    // Rotate the target_linear_ vector to align it to recv_pose_.orientation
+    auto target_acc = (recv_linear_vel_-target_linear_vel_)/dt;
+    auto target_acc_length = target_acc.length();
+    if ( target_acc_length > max_acc_) {
+      target_linear_vel_ += (target_acc/target_acc_length)*max_acc_*dt;
+    } else {
+      target_linear_vel_ = recv_linear_vel_;
+    }
+
+    // Rotate the target_linear_vel_ vector to align it to recv_pose_.orientation
     // because the commands are in the drone frame
-    auto target_linear_cmd_rotated = m*(target_linear_*dt*kl_);
+    auto target_linear_vel_cmd_rotated = m*(target_linear_vel_*dt*kl_);
     auto target_rot_cmd = target_rot_*dt;
 
-    if (target_linear_.length()>0 && !follow_recv_pose_){
+    if (target_linear_vel_.length()>0 && !follow_recv_pose_){
       recv_pose_.position.x = curr_pose.Pos().X();
       recv_pose_.position.y = curr_pose.Pos().Y();
       recv_pose_.position.z = curr_pose.Pos().Z();
@@ -368,9 +386,9 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
       recv_pose_.orientation.w = curr_pose.Rot().W();
     }
 
-    recv_pose_.position.x += target_linear_cmd_rotated.getX();
-    recv_pose_.position.y += target_linear_cmd_rotated.getY();
-    recv_pose_.position.z += target_linear_cmd_rotated.getZ();
+    recv_pose_.position.x += target_linear_vel_cmd_rotated.getX();
+    recv_pose_.position.y += target_linear_vel_cmd_rotated.getY();
+    recv_pose_.position.z += target_linear_vel_cmd_rotated.getZ();
 
     double roll, pitch, yaw;
     m.getRPY(roll, pitch, yaw);
@@ -457,9 +475,9 @@ void GazeboRosHandOfGodOdomPrivate::OnCmdPos(const geometry_msgs::msg::Pose::Sha
 void GazeboRosHandOfGodOdomPrivate::OnCmdVel(const geometry_msgs::msg::Twist::SharedPtr _msg)
 {
   std::lock_guard<std::mutex> scoped_lock(lock_);
-  target_linear_.setX(_msg->linear.x);
-  target_linear_.setY(_msg->linear.y);
-  target_linear_.setZ(_msg->linear.z);
+  recv_linear_vel_.setX(_msg->linear.x);
+  recv_linear_vel_.setY(_msg->linear.y);
+  recv_linear_vel_.setZ(_msg->linear.z);
   target_rot_ = _msg->angular.z;
   follow_recv_pose_ = false;
 }
