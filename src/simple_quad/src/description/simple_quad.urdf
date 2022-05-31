@@ -395,6 +395,8 @@
     <!-- Max acceleration -->
     <max_acc>10</max_acc>
 
+    <fake_pitch_roll>true</fake_pitch_roll>
+
     <!-- Odometry output -->
     <update_rate>50</update_rate>
     <publish_odom>true</publish_odom>

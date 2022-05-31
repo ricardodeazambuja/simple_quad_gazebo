@@ -184,6 +184,8 @@ public:
   double max_acc_;
 
   bool follow_recv_pose_{false};
+
+  bool fake_pitch_roll_;
 };
 
 GazeboRosHandOfGodOdom::GazeboRosHandOfGodOdom()
@@ -240,7 +242,7 @@ void GazeboRosHandOfGodOdom::Load(gazebo::physics::ModelPtr _model, sdf::Element
     return;
   }
 
-  impl_->link_->SetGravityMode(false);
+  impl_->link_->SetGravityMode(true);
 
   impl_->mass_ = impl_->link_->GetInertial()->Mass();
   impl_->cl_ = 2.0 * sqrt(impl_->kl_ * impl_->mass_);
@@ -334,6 +336,8 @@ void GazeboRosHandOfGodOdom::Load(gazebo::physics::ModelPtr _model, sdf::Element
 
 
   impl_->max_acc_ = _sdf->Get<double>("max_acc", 10).first;
+
+  impl_->fake_pitch_roll_ = _sdf->Get<bool>("fake_pitch_roll", true).first;
   
   // Listen to the update event (broadcast every simulation iteration)
   impl_->update_connection_ = gazebo::event::Events::ConnectWorldUpdateBegin(
@@ -353,7 +357,7 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
   ignition::math::Pose3d hog_desired;
   ignition::math::Pose3d curr_pose = link_->DirtyPose();
 
-  double roll, pitch, yaw;
+  double roll, pitch, old_yaw, yaw;
 
   {
     std::lock_guard<std::mutex> pose_lock(lock_);
@@ -362,8 +366,8 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
     tf2::Quaternion q_rot, q_new; // https://docs.ros.org/en/galactic/Tutorials/Tf2/Quaternion-Fundamentals.html
     tf2::fromMsg(recv_pose_.orientation, q_new);
     tf2::Matrix3x3 m(q_new);
-    m.getRPY(roll, pitch, yaw);
-    q_new.setRPY(0.0, 0.0, yaw);
+    m.getRPY(roll, pitch, old_yaw);
+    q_new.setRPY(0.0, 0.0, old_yaw);
     m.setRotation(q_new);
 
     auto target_acc = (recv_linear_vel_- target_linear_vel_)/dt;
@@ -378,12 +382,6 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
     // Rotate the target_linear_vel_ vector to align it to recv_pose_.orientation
     // because the commands are in the drone frame
     auto target_linear_vel_cmd_rotated = m*(target_linear_vel_*dt*kl_);
-    tf2::Matrix3x3 m_acc;
-    tf2::Quaternion q_acc;
-    q_acc.setRPY(0.0, 0.0, -yaw);
-    m_acc.setRotation(q_acc);
-    auto curr_acc = m_acc*(target_linear_vel_cmd_rotated-target_linear_vel_cmd_rotated_prev_)/dt;
-    target_linear_vel_cmd_rotated_prev_ = target_linear_vel_cmd_rotated;
     auto target_rot_cmd = target_rot_*dt;
 
     if (target_linear_vel_.length()>0 && !follow_recv_pose_){
@@ -408,8 +406,18 @@ void GazeboRosHandOfGodOdomPrivate::OnUpdate(const gazebo::common::UpdateInfo & 
     q_new = q_rot * q_new;
     m.setRotation(q_new);
     m.getRPY(roll, pitch, yaw);
-    auto accz = std::clamp(curr_acc.getZ(), 0.0, abs(curr_acc.getZ()));
-    q_new.setRPY(atan2(-curr_acc.getY(),accz+9.8), atan2(curr_acc.getX(),accz+9.8), yaw); // cheap, dirty, trick to make it look more realistic...
+    if (fake_pitch_roll_){
+      tf2::Matrix3x3 m_acc;
+      tf2::Quaternion q_acc;
+      q_acc.setRPY(0.0, 0.0, -old_yaw);
+      m_acc.setRotation(q_acc);
+      auto curr_acc = m_acc*(target_linear_vel_cmd_rotated-target_linear_vel_cmd_rotated_prev_)/dt;
+      target_linear_vel_cmd_rotated_prev_ = target_linear_vel_cmd_rotated;
+      auto accz = std::clamp(curr_acc.getZ(), 0.0, abs(curr_acc.getZ()));
+      q_new.setRPY(atan2(-curr_acc.getY(),accz+9.8), atan2(curr_acc.getX(),accz+9.8), yaw); // cheap, dirty, trick to make it look more realistic...
+    } else {
+      q_new.setRPY(0.0, 0.0, yaw);
+    }
     q_new.normalize();
     tf2::convert(q_new, recv_pose_.orientation); // recv_pose_.orientation = tf2::toMsg(q_new);
   
