@@ -73,6 +73,10 @@ def generate_launch_description():
     
     world_path=os.path.join(pkg_share, 'world/my_world_path_corrected.sdf'),
 
+    # TODO:
+    # Consider improving the launch sequence by using events:
+    # https://docs.ros.org/en/rolling/Tutorials/Launch/Using-Event-Handlers.html
+    # Example: https://github.com/ros-controls/gazebo_ros2_control/blob/b8ab19eabc96c808966d4f406f0ed93d76947e9c/gazebo_ros2_control_demos/launch/cart_example_position.launch.py#L73
     return launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True',
                                             description='Flag to enable use_sim_time'),
@@ -83,7 +87,9 @@ def generate_launch_description():
         launch.actions.ExecuteProcess(cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_init.so', 
                                                                   '-s', 'libgazebo_ros_factory.so',
                                                                   world_path], 
-                                      output='screen'),
+                                      output='screen',
+                                      respawn=True,
+                                      respawn_delay=2.0),
                                     #   additional_env=env), # env=env will REPLACE all the variables instead of appending
         joint_state_publisher_node,
         robot_state_publisher_node,
