@@ -32,11 +32,6 @@ def generate_launch_description():
         [FindPackageShare('simple_quad'), 'config', 'slam.yaml']
     )
 
-    ros_distro = EnvironmentVariable('ROS_DISTRO')
-    slam_param_name = 'params_file'
-    if ros_distro == 'galactic': 
-        slam_param_name = 'slam_params_file'
-
     return LaunchDescription([
         DeclareLaunchArgument(
             name='sim', 
@@ -48,7 +43,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(slam_launch_path),
             launch_arguments={
                 'use_sim_time': LaunchConfiguration("sim"),
-                slam_param_name: slam_config_path
+                'slam_params_file': slam_config_path
             }.items()
         )
     ])
