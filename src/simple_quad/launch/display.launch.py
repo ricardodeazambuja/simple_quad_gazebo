@@ -50,7 +50,7 @@ def generate_launch_description():
     spawn_entity = launch_ros.actions.Node(
         package='gazebo_ros',
         executable='spawn_entity.py',
-        arguments=['-entity', 'simple_quad', '-topic', 'robot_description', '-z', '0.05'],
+        arguments=['-entity', 'simple_quad', '-topic', 'robot_description', '-z', '1.0'],
         output='screen'
     )
 
@@ -58,7 +58,7 @@ def generate_launch_description():
         package='robot_localization',
         executable='ekf_node',
         name='ekf_filter_node',
-        remappings=[('/cmd_vel', '/simple_quad/cmd_vel_rl')],
+        remappings=[('/odometry/filtered', '/odom')],
         output='screen',
         parameters=[os.path.join(pkg_share, 'config/ekf.yaml'), {'use_sim_time': LaunchConfiguration('use_sim_time')}]
     )
@@ -69,6 +69,7 @@ def generate_launch_description():
         name='rviz2',
         output='screen',
         arguments=['-d', LaunchConfiguration('rvizconfig')],
+        parameters=[{'use_sim_time': LaunchConfiguration("use_sim_time")}]
     )
     
     world_path=os.path.join(pkg_share, 'world/my_world_path_corrected.sdf'),
@@ -78,7 +79,7 @@ def generate_launch_description():
     # https://docs.ros.org/en/rolling/Tutorials/Launch/Using-Event-Handlers.html
     # Example: https://github.com/ros-controls/gazebo_ros2_control/blob/b8ab19eabc96c808966d4f406f0ed93d76947e9c/gazebo_ros2_control_demos/launch/cart_example_position.launch.py#L73
     return launch.LaunchDescription([
-        launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True',
+        launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='true',
                                             description='Flag to enable use_sim_time'),
         launch.actions.DeclareLaunchArgument(name='model', default_value=default_model_path,
                                             description='Absolute path to robot urdf file'),

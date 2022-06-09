@@ -41,12 +41,12 @@ if(ENABLE_PROFILER)
   endif()
 endif()
 
-# gazebo_ros_hand_of_god_odom
-add_library(gazebo_ros_hand_of_god_odom SHARED
-  src/gazebo_ros_hand_of_god_odom.cpp
+# gazebo_ros_simple_quad
+add_library(gazebo_ros_simple_quad SHARED
+  src/gazebo_ros_simple_quad.cpp
 )
-target_include_directories(gazebo_ros_hand_of_god_odom PUBLIC include)
-ament_target_dependencies(gazebo_ros_hand_of_god_odom
+target_include_directories(gazebo_ros_simple_quad PUBLIC include)
+ament_target_dependencies(gazebo_ros_simple_quad
   "gazebo_dev"
   "gazebo_ros"
   "geometry_msgs"
@@ -56,10 +56,10 @@ ament_target_dependencies(gazebo_ros_hand_of_god_odom
   "tf2_geometry_msgs"
   "tf2_ros"
 )
-ament_export_libraries(gazebo_ros_hand_of_god_odom)
+ament_export_libraries(gazebo_ros_simple_quad)
 if(ENABLE_PROFILER)
-  target_include_directories(gazebo_ros_hand_of_god_odom PUBLIC ${ignition-common3_INCLUDE_DIRS})
-  target_link_libraries(gazebo_ros_hand_of_god_odom ${ignition-common3_LIBRARIES})
+  target_include_directories(gazebo_ros_simple_quad PUBLIC ${ignition-common3_INCLUDE_DIRS})
+  target_link_libraries(gazebo_ros_simple_quad ${ignition-common3_LIBRARIES})
 endif()
 
 
@@ -77,7 +77,7 @@ install(DIRECTORY include/
         DESTINATION include)
 
 install(TARGETS
-    gazebo_ros_hand_of_god_odom
+  gazebo_ros_simple_quad
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)

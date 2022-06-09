@@ -290,7 +290,7 @@
     <plugin name="scan" filename="libgazebo_ros_ray_sensor.so">
       <ros>
         <namespace>${namespace}</namespace>
-        <remapping>~/out:=scan</remapping>
+        <remapping>~/out:=/scan</remapping>
       </ros>
       <output_type>sensor_msgs/LaserScan</output_type>
       <frame_name>lidar_link</frame_name>
@@ -375,7 +375,7 @@
 </gazebo>
 
 <gazebo>
-  <plugin name='hand_of_god_odom' filename='libgazebo_ros_hand_of_god_odom.so'>
+  <plugin name='gazebo_ros_simple_quad' filename='libgazebo_ros_simple_quad.so'>
     <ros>
       <namespace>${namespace}</namespace>
     </ros>
@@ -401,6 +401,8 @@
     <update_rate>50</update_rate>
     <publish_odom>true</publish_odom>
     <publish_odom_tf>false</publish_odom_tf>
+
+    <cmd_vel_topic>/cmd_vel</cmd_vel_topic>
 
     <odometry_topic>odom</odometry_topic>
     <odometry_frame>odom</odometry_frame>

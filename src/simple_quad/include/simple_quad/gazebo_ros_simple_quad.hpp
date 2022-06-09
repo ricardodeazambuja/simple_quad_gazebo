@@ -41,14 +41,14 @@
 
 namespace gazebo_plugins
 {
-class GazeboRosHandOfGodOdomPrivate;
+class GazeboRosSimpleQuadPrivate;
 
 /// Drives a floating object around based on the location of a TF frame, with odometry output.
 
 /**
   Example Usage:
   \code{.xml}
-    <plugin name="gazebo_ros_hand_of_god_odom" filename="libgazebo_ros_hand_of_god_odom.so">
+    <plugin name="gazebo_ros_simple_quad" filename="libgazebo_ros_simple_quad.so">
 
       <ros>
 
@@ -96,14 +96,14 @@ class GazeboRosHandOfGodOdomPrivate;
     </plugin>
   \endcode
 */
-class GazeboRosHandOfGodOdom : public gazebo::ModelPlugin
+class GazeboRosSimpleQuad : public gazebo::ModelPlugin
 {
 public:
   /// Constructor
-  GazeboRosHandOfGodOdom();
+  GazeboRosSimpleQuad();
 
   /// Destructor
-  ~GazeboRosHandOfGodOdom();
+  ~GazeboRosSimpleQuad();
 
 protected:
   // Documentation inherited
@@ -111,7 +111,7 @@ protected:
 
 private:
   /// Private data pointer
-  std::unique_ptr<GazeboRosHandOfGodOdomPrivate> impl_;
+  std::unique_ptr<GazeboRosSimpleQuadPrivate> impl_;
 };
 }  // namespace gazebo_plugins
 
