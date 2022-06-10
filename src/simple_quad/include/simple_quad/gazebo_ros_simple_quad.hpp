@@ -71,10 +71,15 @@ class GazeboRosSimpleQuadPrivate;
       <!-- Max acceleration -->
       <max_acc>10</max_acc>
 
+      <fake_pitch_roll>true</fake_pitch_roll>
+
       <!-- Odometry output -->
       <update_rate>50</update_rate>
       <publish_odom>true</publish_odom>
-      <publish_odom_tf>true</publish_odom_tf>
+      <publish_odom_tf>false</publish_odom_tf>
+
+      <cmd_vel_topic>/cmd_vel</cmd_vel_topic>
+      <cmd_pos_topic>/cmd_pos</cmd_pos_topic>
 
       <odometry_topic>odom</odometry_topic>
       <odometry_frame>odom</odometry_frame>
@@ -83,16 +88,28 @@ class GazeboRosSimpleQuadPrivate;
       <bias_x>0.00001</bias_x>
       <bias_y>0.00001</bias_y>
       <bias_z>0.00001</bias_z>
-      <covariance_x>0.00001</covariance_x>
-      <covariance_y>0.00001</covariance_y>
-      <covariance_z>0.00001</covariance_z>
+      <covariance_x>0.01</covariance_x>
+      <covariance_y>0.01</covariance_y>
+      <covariance_z>0.01</covariance_z>
+      <bias_vx>0.00001</bias_vx>
+      <bias_vy>0.00001</bias_vy>
+      <bias_vz>0.00001</bias_vz>
+      <covariance_vx>0.01</covariance_vx>
+      <covariance_vy>0.01</covariance_vy>
+      <covariance_vz>0.01</covariance_vz>
       <bias_roll>0.001</bias_roll>
       <bias_pitch>0.001</bias_pitch>
       <bias_yaw>0.001</bias_yaw>
-      <covariance_roll>0.001</covariance_roll>
-      <covariance_pitch>0.001</covariance_pitch>
-      <covariance_yaw>0.001</covariance_yaw>
-
+      <covariance_roll>0.01</covariance_roll>
+      <covariance_pitch>0.01</covariance_pitch>
+      <covariance_yaw>0.01</covariance_yaw>
+      <bias_vroll>0.001</bias_vroll>
+      <bias_vpitch>0.001</bias_vpitch>
+      <bias_vyaw>0.001</bias_vyaw>
+      <covariance_vroll>0.01</covariance_vroll>
+      <covariance_vpitch>0.01</covariance_vpitch>
+      <covariance_vyaw>0.01</covariance_vyaw>
+      
     </plugin>
   \endcode
 */

@@ -253,7 +253,8 @@ void GazeboRosSimpleQuad::Load(gazebo::physics::ModelPtr _model, sdf::ElementPtr
 
   // Subscribe to pose
   impl_->cmd_pos_sub_ = impl_->ros_node_->create_subscription<geometry_msgs::msg::Pose>(
-    "cmd_pos", qos.get_subscription_qos("cmd_pos", rclcpp::QoS(1)),
+    _sdf->Get<std::string>("cmd_pos_topic", "/cmd_pos").first, 
+    qos.get_subscription_qos(_sdf->Get<std::string>("cmd_pos_topic", "/cmd_pos").first, rclcpp::QoS(1)),
     std::bind(&GazeboRosSimpleQuadPrivate::OnCmdPos, impl_.get(), std::placeholders::_1));
   
   RCLCPP_INFO(

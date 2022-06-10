@@ -403,6 +403,7 @@
     <publish_odom_tf>false</publish_odom_tf>
 
     <cmd_vel_topic>/cmd_vel</cmd_vel_topic>
+    <cmd_pos_topic>/cmd_pos</cmd_pos_topic>
 
     <odometry_topic>odom</odometry_topic>
     <odometry_frame>odom</odometry_frame>
@@ -417,9 +418,9 @@
     <bias_vx>0.00001</bias_vx>
     <bias_vy>0.00001</bias_vy>
     <bias_vz>0.00001</bias_vz>
-    <covariance_vx>0.01</covariance_vx>
-    <covariance_vy>0.01</covariance_vy>
-    <covariance_vz>0.01</covariance_vz>
+    <covariance_vx>0.1</covariance_vx>
+    <covariance_vy>0.1</covariance_vy>
+    <covariance_vz>0.1</covariance_vz>
     <bias_roll>0.001</bias_roll>
     <bias_pitch>0.001</bias_pitch>
     <bias_yaw>0.001</bias_yaw>

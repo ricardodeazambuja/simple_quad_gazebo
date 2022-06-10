@@ -64,7 +64,7 @@ ekf_filter_node:
         odom0_config: [false, false, false, # x, y, z,
                        false, false, false, # roll, pitch, yaw
                        true, true, true,    # vx, vy, vz
-                       true, true, true,    # vroll, vpitch, vyaw
+                       false, false, false, # vroll, vpitch, vyaw
                        false, false, false] # ax, ay, az
 # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
 # the size of the subscription queue so that more measurements are fused.

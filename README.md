@@ -15,9 +15,17 @@ colcon build --symlink-install
 ros2 launch simple_quad display.launch.py
 ```
 
+```
+ros2 launch simple_quad slam.launch.py 
+```
+
+```
+ros2 launch simple_quad navigation.launch.py
+```
+
 Move to Z=0.5:
 ```
-ros2 topic pub /simple_quad/cmd_pos geometry_msgs/msg/Pose "position:
+ros2 topic pub /cmd_pos geometry_msgs/msg/Pose "position:
   x: 0.0
   y: 0.0
   z: 0.5
@@ -30,7 +38,7 @@ orientation:
 
 Spin around Z with velocity 0.5rad/s:
 ```
-ros2 topic pub /simple_quad/cmd_vel geometry_msgs/msg/Twist "linear:
+ros2 topic pub /cmd_vel geometry_msgs/msg/Twist "linear:
   x: 0.0
   y: 0.0
   z: 0.0
@@ -42,5 +50,9 @@ angular:
 
 Control it using the keyboard:
 ```
-ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r teleop_twist_keyboard:cmd_vel:=/simple_quad/cmd_vel
+ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r teleop_twist_keyboard:cmd_vel:=/cmd_vel
 ```
+
+## Notes
+* ExecuteProcess has a very useful parameter called `respawn` that relaunches a process that abnormally died (and you can control the delay with `respawn_delay`). I added that to te `display.launch.py` and it helped launching Gazebo more reliably.
+* Next step is to use the (Event Handlers)[https://docs.ros.org/en/rolling/Tutorials/Launch/Using-Event-Handlers.html]
