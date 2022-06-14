@@ -344,11 +344,12 @@
         <width>640</width>
         <height>480</height>
         <format>R8G8B8</format>
+        <!-- <format>L8</format> -->
       </image>
-      <clip>
+      <!-- <clip>
         <near>0.05</near>
-        <far>3</far>
-      </clip>
+        <far>2000</far>
+      </clip> -->
     </camera>
     <plugin name="depth_camera_controller" filename="libgazebo_ros_camera.so">
       <ros>
@@ -370,6 +371,9 @@
       <Cy>0</Cy>
       <focalLength>0</focalLength>
       <hackBaseline>0</hackBaseline>
+      <min_depth>0.05</min_depth>
+      <max_depth>20</max_depth>
+
     </plugin>
   </sensor>
 </gazebo>
