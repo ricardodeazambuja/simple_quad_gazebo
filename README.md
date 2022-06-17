@@ -2,6 +2,11 @@
 Very simple quadcopter for Gazebo using ROS2 Galactic. It's just a very cheap and dirty adaptation of a pre-existent Gazebo plugin called "hand of god", but now it looks like a quadcopter and you can send velocity commands too. In addition to that, it makes the quad **look** a little bit more realistic by **faking** the pitch and roll angles according to the acceleration. All settings are easy to understand, just check the [simple_quad.urdf](src/simple_quad/src/description/simple_quad.urdf).     
 I wrote this because I wanted something faster than the quad plugins available for Gazebo, but I wrote the code without worried about writing an optimized code and I never tested it against anything to confirm it's really faster than those plugins... LOL.
 
+The easiest way to test it is by using docker and [this script](https://github.com/ricardodeazambuja/ros2-playground/blob/main/launch_ros2_desktop.sh):
+```
+launch_ros2_desktop.sh -g -d . --image ricardodeazambuja/ros2-galactic-desktop
+```
+
 
 ```
 colcon build --symlink-install
