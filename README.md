@@ -61,4 +61,4 @@ ros2 run teleop_twist_keyboard teleop_twist_keyboard --ros-args -r teleop_twist_
 * ROS 1 Noetic version available here: [https://github.com/willRicard/simple_quad_gazebo](https://github.com/willRicard/simple_quad_gazebo)
 ## Notes
 * ExecuteProcess has a very useful parameter called `respawn` that relaunches a process that abnormally died (and you can control the delay with `respawn_delay`). I added that to te `display.launch.py` and it helped launching Gazebo more reliably.
-* Next step is to use the (Event Handlers)[https://docs.ros.org/en/rolling/Tutorials/Launch/Using-Event-Handlers.html]
+* Next step is to use the [Event Handlers](https://docs.ros.org/en/rolling/Tutorials/Launch/Using-Event-Handlers.html)
