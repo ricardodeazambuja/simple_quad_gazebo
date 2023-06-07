@@ -4,7 +4,7 @@ I wrote this because I wanted something faster than the quad plugins available f
 
 The easiest way to test it is cloning this repo and using docker with [this script](https://github.com/ricardodeazambuja/ros2-playground/blob/main/launch_ros2_desktop.sh) from the repo's root directory (the `-d .` will mount the current dir inside the docker container):
 ```
-launch_ros2_desktop.sh -g -d . --image ricardodeazambuja/ros2-galactic-desktop
+./launch_ros2_desktop.sh -g -d . --image ricardodeazambuja/ros2-galactic-desktop
 ```
 
 
